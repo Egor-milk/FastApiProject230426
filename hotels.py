@@ -1,7 +1,7 @@
 
-
 from fastapi import Query, APIRouter, Body
 
+from dependencies import PaginationDep
 from schemas.hotels import Hotel, HotelPatch
 
 router = APIRouter(prefix='/hotels')
@@ -14,6 +14,7 @@ hotels = [
 
 @router.get("")
 def get_hotels(
+        pagination: PaginationDep,
         id: int | None = Query(None, description="Айдишник"),
         title: str | None = Query(None, description="Название отеля"),
 ):
@@ -24,9 +25,10 @@ def get_hotels(
         if title and hotel["title"] != title:
             continue
         hotels_.append(hotel)
+    if pagination.page and pagination.per_page:
+        current_element = ((pagination.page - 1) * pagination.per_page)
+        return hotels_[current_element : current_element + (pagination.per_page)]
     return hotels_
-
-
 @router.post("")
 def create_hotel(hotel_data: Hotel = Body(openapi_examples={
     '1': {'summary': 'sochi', 'value': {
