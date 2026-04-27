@@ -3,7 +3,7 @@ from fastapi import Query, APIRouter, Body
 
 from sqlalchemy import insert
 from src.api.dependencies import PaginationDep
-from src.database import async_session_maker
+from src.database import async_session_maker, engine
 from src.models.hotels import HotelsOrm
 from src.schemas.hotels import Hotel, HotelPatch
 
@@ -39,22 +39,26 @@ def get_hotels(
     return hotels_
 @router.post("")
 async def create_hotel(hotel_data: Hotel = Body(openapi_examples={
-    '1': {'summary': 'sochi',
-          'value': {
-              'title': 'hotel',
-              'location': 'sochi',
+    '1': {
+        'summary': 'sochi',
+        'value': {
+            'title': 'hotel',
+            'location': 'sochi',
           }
     },
-    '2': {'summary': 'dubai',
-          'value': {
-              'title': 'hotel_2',
-              'location': 'dubai',
+    '2': {
+        'summary': 'dubai',
+        'value': {
+            'title': 'hotel_2',
+            'location': 'dubai',
           }
     }
 })
 ):
     async with async_session_maker() as session:
         add_hotel_stmt = insert(HotelsOrm).values(**hotel_data.model_dump())
+        print(add_hotel_stmt.compile(engine, compile_kwargs={"literal_binds": True})) # показывает данные которые отправляются в бд
+        # engine - позволяет скорректировать диалект sql под движок
         await session.execute(add_hotel_stmt)
         await session.commit()
 
