@@ -11,6 +11,7 @@ from sqlalchemy.orm import DeclarativeBase
 from src.config import settings
 from src.database import Base
 from src.models.hotels import HotelsOrm #нужно обязательно импортировать с Base
+from src.models.rooms import RoomsOrm
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
