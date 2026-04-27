@@ -1,7 +1,10 @@
 
 from fastapi import Query, APIRouter, Body
 
+from sqlalchemy import insert
 from src.api.dependencies import PaginationDep
+from src.database import async_session_maker
+from src.models.hotels import HotelsOrm
 from src.schemas.hotels import Hotel, HotelPatch
 
 router = APIRouter(prefix='/hotels')
@@ -35,22 +38,26 @@ def get_hotels(
         return hotels_[current_element : current_element + (pagination.per_page)]
     return hotels_
 @router.post("")
-def create_hotel(hotel_data: Hotel = Body(openapi_examples={
-    '1': {'summary': 'sochi', 'value': {
-        'title': 'Отель сочи 5 звезд у моря',
-        'name': 'sochi_u_morya'
-    }},
-    '2': {'summary': 'dubai', 'value': {
-        'title': 'Отель дубай у фантана',
-        'name': 'dubai_u_morya'
-    }}})
+async def create_hotel(hotel_data: Hotel = Body(openapi_examples={
+    '1': {'summary': 'sochi',
+          'value': {
+              'title': 'hotel',
+              'location': 'sochi',
+          }
+    },
+    '2': {'summary': 'dubai',
+          'value': {
+              'title': 'hotel_2',
+              'location': 'dubai',
+          }
+    }
+})
 ):
-    global hotels
-    hotels.append({
-        "id": hotels[-1]["id"] + 1,
-        "title": hotel_data.title,
-        "name": hotel_data.name,
-    })
+    async with async_session_maker() as session:
+        add_hotel_stmt = insert(HotelsOrm).values(**hotel_data.model_dump())
+        await session.execute(add_hotel_stmt)
+        await session.commit()
+
     return {"status": "OK"}
 
 
