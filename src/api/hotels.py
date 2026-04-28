@@ -17,8 +17,19 @@ async def get_hotels(
         id: int | None = Query(None, description="Айдишник"),
         title: str | None = Query(None, description="Название отеля"),
 ):
+    per_page = pagination.per_page or 5
     async with async_session_maker() as session:
         query = select(HotelsOrm)
+        if id:
+            query = query.filter_by(id=id)
+        if title:
+            query = query.filter_by(title=title)
+        query = (
+            query
+            .limit(per_page)
+            .offset(per_page * (pagination.page - 1))
+        )
+
         print(query.compile(engine, compile_kwargs={"literal_binds": True}))
         result = await session.execute(query) # stmt = statement это добавить, обновить или удалить, query для селектов
         hotels = result.scalars().all() # из [tuple, tuple, tuple] достанет первый элемент каждого кортежа
