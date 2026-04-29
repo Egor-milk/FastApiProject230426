@@ -7,7 +7,7 @@ class BaseRepository:
     def __init__(self, session):
         self.session = session
 
-    async def get_all(self):
+    async def get_all(self, *args, **kwargs):
         query = select(self.model)
         #print(query.compile(engine, compile_kwargs={"literal_binds": True}))
         result = await self.session.execute(query)  # stmt = statement это добавить, обновить или удалить, query для селектов
