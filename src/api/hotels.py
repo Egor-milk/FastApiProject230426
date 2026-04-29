@@ -1,7 +1,7 @@
 
-from fastapi import Query, APIRouter, Body
+from fastapi import Query, APIRouter, Body, HTTPException
 
-from sqlalchemy import insert, select
+from sqlalchemy import insert, select, exc
 from src.api.dependencies import PaginationDep
 from src.database import async_session_maker, engine
 from src.models.hotels import HotelsOrm
@@ -60,9 +60,16 @@ async def edit_hotel(
         hotel_data: Hotel,
 ):
     async with async_session_maker() as session:
-        await HotelsRepository(session=session).edit(data=hotel_data, id=hotel_id)
-        await session.commit()
-    return {"status": "OK"}
+        try:
+            result = await HotelsRepository(session=session).edit(data=hotel_data, id=hotel_id)
+            await session.commit()
+            return {"status": "OK", "data": result}
+        except exc.NoResultFound:
+            await session.rollback()
+            raise HTTPException(status_code=404, detail='no result found')
+        except exc.MultipleResultsFound:
+            await session.rollback()
+            raise HTTPException(status_code=400, detail='multiple result found')
 
 
 @router.patch(
@@ -86,7 +93,13 @@ def partially_edit_hotel(
 @router.delete("{hotel_id}")
 async def delete_hotel(hotel_id: int):
     async with async_session_maker() as session:
-        await HotelsRepository(
-          session=session).delete(id=hotel_id)
-        await session.commit()
-    return {"status": "OK"}
+        try:
+            result = await HotelsRepository(session=session).delete(id=hotel_id)
+            await session.commit()
+            return {"status": "OK", "data": result}
+        except exc.NoResultFound:
+            await session.rollback()
+            raise HTTPException(status_code=404, detail='no result found')
+        except exc.MultipleResultsFound:
+            await session.rollback()
+            raise HTTPException(status_code=400, detail='multiple result found')

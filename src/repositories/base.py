@@ -1,4 +1,5 @@
 from alembic.ddl.base import alter_table
+from fastapi import HTTPException
 from pydantic import BaseModel
 from sqlalchemy import select, insert, update, delete
 
@@ -28,11 +29,13 @@ class BaseRepository:
         return hotel.scalars().one()
 
     async def edit(self, data: BaseModel, **filter_by) -> None:
-        edit_hotel_stmt = update(self.model).filter_by(**filter_by).values(**data.model_dump())
+        edit_hotel_stmt = update(self.model).filter_by(**filter_by).values(**data.model_dump()).returning(self.model)
         print(edit_hotel_stmt.compile(engine, compile_kwargs={"literal_binds": True}))
-        await self.session.execute(edit_hotel_stmt)
+        result = await self.session.execute(edit_hotel_stmt)
+        return result.scalars().one()
 
     async def delete(self, **filter_by) -> None:
-        delete_hotel_stmt = delete(self.model).filter_by(**filter_by)
+        delete_hotel_stmt = delete(self.model).filter_by(**filter_by).returning(self.model)
         print(delete_hotel_stmt.compile(engine, compile_kwargs={"literal_binds": True}))
-        await self.session.execute(delete_hotel_stmt)
+        result = await self.session.execute(delete_hotel_stmt)
+        return result.scalars().one()
