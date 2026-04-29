@@ -1,6 +1,6 @@
 from alembic.ddl.base import alter_table
 from pydantic import BaseModel
-from sqlalchemy import select, insert, update
+from sqlalchemy import select, insert, update, delete
 
 from src.database import engine
 
@@ -27,10 +27,12 @@ class BaseRepository:
         hotel = await self.session.execute(add_hotel_stmt)
         return hotel.scalars().one()
 
-    async def edit(self, data: BaseModel, hotel_id) -> None:
-        edit_hotel_stmt = update(self.model).where(self.model.id == hotel_id).values(**data.model_dump())
+    async def edit(self, data: BaseModel, **filter_by) -> None:
+        edit_hotel_stmt = update(self.model).filter_by(**filter_by).values(**data.model_dump())
         print(edit_hotel_stmt.compile(engine, compile_kwargs={"literal_binds": True}))
         await self.session.execute(edit_hotel_stmt)
 
     async def delete(self, **filter_by) -> None:
-        ...
+        delete_hotel_stmt = delete(self.model).filter_by(**filter_by)
+        print(delete_hotel_stmt.compile(engine, compile_kwargs={"literal_binds": True}))
+        await self.session.execute(delete_hotel_stmt)
