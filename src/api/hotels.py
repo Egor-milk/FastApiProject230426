@@ -5,6 +5,7 @@ from sqlalchemy import insert, select
 from src.api.dependencies import PaginationDep
 from src.database import async_session_maker, engine
 from src.models.hotels import HotelsOrm
+from src.repositories.hotels import HotelsRepository
 from src.schemas.hotels import Hotel, HotelPatch
 
 router = APIRouter(prefix='/hotels')
@@ -17,23 +18,25 @@ async def get_hotels(
         title: str | None = Query(None, description="Название отеля"),
         location: str | None = Query(None, description="Местоположение")
 ):
-    per_page = pagination.per_page or 5
     async with async_session_maker() as session:
-        query = select(HotelsOrm)
-        if location:
-            query = query.filter(HotelsOrm.location.ilike(f"%{location.strip()}%"))
-        if title:
-            query = query.filter(HotelsOrm.title.ilike(f"%{title.strip()}%"))
-        query = (
-            query
-            .limit(per_page)
-            .offset(per_page * (pagination.page - 1))
-        )
-
-        print(query.compile(engine, compile_kwargs={"literal_binds": True}))
-        result = await session.execute(query) # stmt = statement это добавить, обновить или удалить, query для селектов
-        hotels = result.scalars().all() # из [tuple, tuple, tuple] достанет первый элемент каждого кортежа
-        return hotels
+        return await HotelsRepository(session=session).get_all()
+    # per_page = pagination.per_page or 5
+    # async with async_session_maker() as session:
+    #     query = select(HotelsOrm)
+    #     if location:
+    #         query = query.filter(HotelsOrm.location.ilike(f"%{location.strip()}%"))
+    #     if title:
+    #         query = query.filter(HotelsOrm.title.ilike(f"%{title.strip()}%"))
+    #     query = (
+    #         query
+    #         .limit(per_page)
+    #         .offset(per_page * (pagination.page - 1))
+    #     )
+    #
+    #     print(query.compile(engine, compile_kwargs={"literal_binds": True}))
+    #     result = await session.execute(query) # stmt = statement это добавить, обновить или удалить, query для селектов
+    #     hotels = result.scalars().all() # из [tuple, tuple, tuple] достанет первый элемент каждого кортежа
+    #     return hotels
 
 @router.post("")
 async def create_hotel(hotel_data: Hotel = Body(openapi_examples={
