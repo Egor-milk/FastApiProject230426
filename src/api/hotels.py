@@ -1,7 +1,9 @@
 
 from fastapi import Query, APIRouter, Body, HTTPException
 
-from sqlalchemy import insert, select, exc
+from sqlalchemy import insert, select
+from sqlalchemy.exc import NoResultFound, MultipleResultsFound
+
 from src.api.dependencies import PaginationDep
 from src.database import async_session_maker, engine
 from src.models.hotels import HotelsOrm
@@ -9,7 +11,6 @@ from src.repositories.hotels import HotelsRepository
 from src.schemas.hotels import Hotel, HotelPatch, HotelAdd
 
 router = APIRouter(prefix='/hotels')
-
 
 
 @router.get("")
@@ -32,7 +33,7 @@ async def get_hotel(hotel_id: int):
     async with async_session_maker() as session:
         try:
             return await HotelsRepository(session=session).get_one_or_none(id=hotel_id)
-        except exc.MultipleResultsFound:
+        except MultipleResultsFound:
             raise HTTPException(status_code=400, detail='multiple result found')
 
 
@@ -74,10 +75,10 @@ async def edit_hotel(
             result = await HotelsRepository(session=session).edit(data=hotel_data, id=hotel_id)
             await session.commit()
             return {"status": "OK", "data": result}
-        except exc.NoResultFound:
+        except NoResultFound:
             await session.rollback()
             raise HTTPException(status_code=404, detail='no result found')
-        except exc.MultipleResultsFound:
+        except MultipleResultsFound:
             await session.rollback()
             raise HTTPException(status_code=400, detail='multiple result found')
 
@@ -96,10 +97,10 @@ async def partially_edit_hotel(
             result = await HotelsRepository(session=session).edit(exclude_unset=True, data=hotel_data, id=hotel_id)
             await session.commit()
             return {"status": "OK", "data": result}
-        except exc.NoResultFound:
+        except NoResultFound:
             await session.rollback()
             raise HTTPException(status_code=404, detail='no result found')
-        except exc.MultipleResultsFound:
+        except MultipleResultsFound:
             await session.rollback()
             raise HTTPException(status_code=400, detail='multiple result found')
 
@@ -111,9 +112,9 @@ async def delete_hotel(hotel_id: int):
             result = await HotelsRepository(session=session).delete(id=hotel_id)
             await session.commit()
             return {"status": "OK", "data": result}
-        except exc.NoResultFound:
+        except NoResultFound:
             await session.rollback()
             raise HTTPException(status_code=404, detail='no result found')
-        except exc.MultipleResultsFound:
+        except MultipleResultsFound:
             await session.rollback()
             raise HTTPException(status_code=400, detail='multiple result found')
