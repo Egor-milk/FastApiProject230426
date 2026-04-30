@@ -27,6 +27,16 @@ async def get_hotels(
             offset=per_page * (pagination.page - 1)
         )
 
+@router.get("/{hotel_id}")
+async def get_hotel(hotel_id: int):
+    async with async_session_maker() as session:
+        try:
+            return await HotelsRepository(session=session).get_one_or_none(id=hotel_id)
+        except exc.MultipleResultsFound:
+            raise HTTPException(status_code=400, detail='multiple result found')
+
+
+
 @router.post("")
 async def create_hotel(hotel_data: Hotel = Body(openapi_examples={
     '1': {
