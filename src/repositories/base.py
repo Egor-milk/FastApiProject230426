@@ -28,8 +28,9 @@ class BaseRepository:
         hotel = await self.session.execute(add_hotel_stmt)
         return hotel.scalars().one()
 
-    async def edit(self, data: BaseModel, **filter_by) -> None:
-        edit_hotel_stmt = update(self.model).filter_by(**filter_by).values(**data.model_dump()).returning(self.model)
+    async def edit(self, data: BaseModel, exclude_unset: bool =False, **filter_by) -> None:
+        edit_hotel_stmt = update(self.model).filter_by(**filter_by).values(**data.model_dump(exclude_unset=True)).returning(self.model)
+        #exclude_unset=True позволяет не вставлять не переданные параметры
         print(edit_hotel_stmt.compile(engine, compile_kwargs={"literal_binds": True}))
         result = await self.session.execute(edit_hotel_stmt)
         return result.scalars().one()

@@ -77,17 +77,21 @@ async def edit_hotel(
     summary="Частичное обновление данных об отеле",
     description="<h1>Тут мы частично обновляем данные об отеле: можно отправить name, а можно title</h1>",
 )
-def partially_edit_hotel(
+async def partially_edit_hotel(
         hotel_id: int,
         hotel_data: HotelPatch,
 ):
-    global hotels
-    hotel = [hotel for hotel in hotels if hotel["id"] == hotel_id][0]
-    if hotel_data.title:
-        hotel["title"] = hotel_data.title
-    if hotel_data.name:
-        hotel["name"] = hotel_data.name
-    return {"status": "OK"}
+    async with async_session_maker() as session:
+        try:
+            result = await HotelsRepository(session=session).edit(exclude_unset=True, data=hotel_data, id=hotel_id)
+            await session.commit()
+            return {"status": "OK", "data": result}
+        except exc.NoResultFound:
+            await session.rollback()
+            raise HTTPException(status_code=404, detail='no result found')
+        except exc.MultipleResultsFound:
+            await session.rollback()
+            raise HTTPException(status_code=400, detail='multiple result found')
 
 
 @router.delete("{hotel_id}")
