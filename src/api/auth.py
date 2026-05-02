@@ -1,7 +1,8 @@
 import os
 from datetime import timedelta, timezone, datetime
 
-from fastapi import APIRouter, HTTPException, Response
+from debugpy.adapter import access_token
+from fastapi import APIRouter, HTTPException, Response, Request
 from passlib.context import CryptContext
 import jwt
 
@@ -42,3 +43,9 @@ async def register_user(
         await session.commit()
 
     return {"status": "OK"}
+
+@router.get("/only_auth")
+async def only_auth(
+        request: Request,
+):
+    return request.cookies.get("access_token")
