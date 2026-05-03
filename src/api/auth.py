@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException, Response, Request
 from passlib.context import CryptContext
 import jwt
 
+from src.api.dependencies import UserIdDep
 from src.config import settings
 from src.database import async_session_maker
 from src.repositories.users import UsersRepository
@@ -43,13 +44,10 @@ async def register_user(
 
     return {"status": "OK"}
 
-@router.get("/only_auth")
-async def only_auth(
-        request: Request,
+@router.get("/me")
+async def get_me(
+        user_id: UserIdDep,
 ):
-    access_token = request.cookies.get("access_token")
-    data = AuthService().decode_token(access_token)
-    user_id = data["user_id"]
     async with async_session_maker() as session:
         user = await UsersRepository(session=session).get_one_or_none(id=user_id)
     return user
