@@ -1,7 +1,6 @@
 import os
 from datetime import timedelta, timezone, datetime
 
-from debugpy.adapter import access_token
 from fastapi import APIRouter, HTTPException, Response, Request
 from passlib.context import CryptContext
 import jwt
@@ -48,4 +47,9 @@ async def register_user(
 async def only_auth(
         request: Request,
 ):
-    return request.cookies.get("access_token")
+    access_token = request.cookies.get("access_token")
+    data = AuthService().decode_token(access_token)
+    user_id = data["user_id"]
+    async with async_session_maker() as session:
+        user = await UsersRepository(session=session).get_one_or_none(id=user_id)
+    return user
