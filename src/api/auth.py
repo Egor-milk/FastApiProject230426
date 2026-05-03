@@ -1,7 +1,7 @@
 import os
 from datetime import timedelta, timezone, datetime
 
-from fastapi import APIRouter, HTTPException, Response, Request
+from fastapi import APIRouter, HTTPException, Response
 from passlib.context import CryptContext
 import jwt
 
@@ -51,3 +51,11 @@ async def get_me(
     async with async_session_maker() as session:
         user = await UsersRepository(session=session).get_one_or_none(id=user_id)
     return user
+
+
+@router.post("/logout")
+async def logout_user(
+        response: Response,
+):
+    response.delete_cookie("access_token")
+    return {"status": "OK"}
