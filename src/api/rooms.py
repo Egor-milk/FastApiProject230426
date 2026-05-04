@@ -20,16 +20,19 @@ async def get_rooms(
     async with async_session_maker() as session:
         return await RoomsRepository(session=session).get_all(hotel_id)
 
-# @router.get("/{hotel_id}")
-# async def get_hotel(hotel_id: int):
-#     async with async_session_maker() as session:
-#         try:
-#             return await HotelsRepository(session=session).get_one_or_none(id=hotel_id)
-#         except MultipleResultsFound:
-#             raise HTTPException(status_code=400, detail='multiple result found')
-#
-#
-#
+@router.get("/{hotel_id}/rooms/{room_id}")
+async def get_room(
+        hotel_id: int,
+        room_id: int
+):
+    async with async_session_maker() as session:
+        try:
+            return await RoomsRepository(session=session).get_one_or_none(id=room_id, hotel_id=hotel_id)
+        except MultipleResultsFound:
+            raise HTTPException(status_code=400, detail='multiple result found')
+
+
+
 @router.post("/{hotel_id}/rooms")
 async def create_rooms(
         hotel_id: int,
