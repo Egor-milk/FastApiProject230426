@@ -1,16 +1,13 @@
 
-from fastapi import Query, APIRouter, Body, HTTPException
+from fastapi import APIRouter, Body, HTTPException
 
-from sqlalchemy import insert, select
 from sqlalchemy.exc import NoResultFound, MultipleResultsFound
 
-from src.api.dependencies import PaginationDep
-from src.database import async_session_maker, engine
+from src.database import async_session_maker
 from src.repositories.rooms import RoomsRepository
-from src.schemas.hotels import Hotel, HotelPatch, HotelAdd
-from src.schemas.rooms import RoomAdd, RoomAddRequest, RoomPatchRequest
+from src.schemas.rooms import RoomAdd, RoomAddRequest, RoomPatchRequest, RoomPatch
 
-router = APIRouter(prefix='/hotels', tags=["Комнаты"])
+router = APIRouter(prefix='/hotels', tags=["Номера"])
 
 
 @router.get("/{hotel_id}/rooms")
@@ -18,7 +15,7 @@ async def get_rooms(
         hotel_id: int,
 ):
     async with async_session_maker() as session:
-        return await RoomsRepository(session=session).get_all(hotel_id)
+        return await RoomsRepository(session=session).get_filtered(hotel_id=hotel_id)
 
 @router.get("/{hotel_id}/rooms/{room_id}")
 async def get_room(
@@ -66,15 +63,16 @@ async def create_rooms(
     return {"status": "OK", "data": room}
 
 
-@router.put("/{hotel_id}/rooms/{room_id}")
+@router.put("/{hotel_id}/rooms/{room_id}") #сделать чтобы в репозиторий отправлялся экземпляр RoomAdd
 async def edit_room(
         hotel_id: int, #проверить а нужен ли вообще hotel_id
         room_id: int,
         room_data: RoomAddRequest,
 ):
+    _room_data = RoomAdd(hotel_id=hotel_id, **room_data.model_dump())
     async with async_session_maker() as session:
         try:
-            result = await RoomsRepository(session=session).edit(data=room_data, hotel_id=hotel_id, id=room_id)
+            result = await RoomsRepository(session=session).edit(data=_room_data, id=room_id)
             await session.commit()
             return {"status": "OK", "data": result}
         except NoResultFound:
@@ -85,20 +83,17 @@ async def edit_room(
             raise HTTPException(status_code=400, detail='multiple result found')
 
 
-@router.patch(
-    "/{hotel_id}/rooms/{room_id}",
-    summary="Частичное обновление данных о комнате",
-    description="<h1>можно менять данные о комнате",
-)
+@router.patch("/{hotel_id}/rooms/{room_id}")
 async def partially_edit_room(
-        hotel_id: int,  # проверить а нужен ли вообще hotel_id
+        hotel_id: int,
         room_id: int,
         room_data: RoomPatchRequest,
 ):
+    _room_data = RoomPatch(hotel_id=hotel_id, **room_data.model_dump(exclude_unset=True))
     async with async_session_maker() as session:
         try:
             result = await RoomsRepository(session=session).edit(
-                data=room_data,
+                data=_room_data,
                 hotel_id=hotel_id,
                 id=room_id,
                 exclude_unset=True
@@ -115,7 +110,7 @@ async def partially_edit_room(
 
 @router.delete("/{hotel_id}/rooms/{room_id}")
 async def delete_room(
-        hotel_id: int, # не уверен что здесь нужен hotel_id
+        hotel_id: int,
         room_id: int,
 ):
     async with async_session_maker() as session:
