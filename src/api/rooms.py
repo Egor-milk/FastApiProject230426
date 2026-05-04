@@ -113,16 +113,19 @@ async def partially_edit_room(
             raise HTTPException(status_code=400, detail='multiple result found')
 
 
-# @router.delete("{hotel_id}")
-# async def delete_hotel(hotel_id: int):
-#     async with async_session_maker() as session:
-#         try:
-#             result = await HotelsRepository(session=session).delete(id=hotel_id)
-#             await session.commit()
-#             return {"status": "OK", "data": result}
-#         except NoResultFound:
-#             await session.rollback()
-#             raise HTTPException(status_code=404, detail='no result found')
-#         except MultipleResultsFound:
-#             await session.rollback()
-#             raise HTTPException(status_code=400, detail='multiple result found')
+@router.delete("/{hotel_id}/rooms/{room_id}")
+async def delete_room(
+        hotel_id: int, # не уверен что здесь нужен hotel_id
+        room_id: int,
+):
+    async with async_session_maker() as session:
+        try:
+            result = await RoomsRepository(session=session).delete(hotel_id=hotel_id, id=room_id)
+            await session.commit()
+            return {"status": "OK", "data": result}
+        except NoResultFound:
+            await session.rollback()
+            raise HTTPException(status_code=404, detail='no result found')
+        except MultipleResultsFound:
+            await session.rollback()
+            raise HTTPException(status_code=400, detail='multiple result found')
