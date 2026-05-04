@@ -36,7 +36,7 @@ async def get_room(
 @router.post("/{hotel_id}/rooms")
 async def create_rooms(
         hotel_id: int,
-        rooms_data: RoomAddRequest = Body(
+        room_data: RoomAddRequest = Body(
             openapi_examples={
                 "1": {
                     "summary": "test_room_1",
@@ -58,31 +58,32 @@ async def create_rooms(
                 }
             })
 ):
-    _rooms_data = RoomAdd(hotel_id=hotel_id, **rooms_data.model_dump())
+    _room_data = RoomAdd(hotel_id=hotel_id, **room_data.model_dump())
     async with async_session_maker() as session:
-        room = await RoomsRepository(session=session).add(data=_rooms_data)
+        room = await RoomsRepository(session=session).add(data=_room_data)
         await session.commit()
 
     return {"status": "OK", "data": room}
 
-#
-# @router.put("/{hotel_id}")
-# async def edit_hotel(
-#         hotel_id: int,
-#         hotel_data: HotelAdd,
-# ):
-#     async with async_session_maker() as session:
-#         try:
-#             result = await HotelsRepository(session=session).edit(data=hotel_data, id=hotel_id)
-#             await session.commit()
-#             return {"status": "OK", "data": result}
-#         except NoResultFound:
-#             await session.rollback()
-#             raise HTTPException(status_code=404, detail='no result found')
-#         except MultipleResultsFound:
-#             await session.rollback()
-#             raise HTTPException(status_code=400, detail='multiple result found')
-#
+
+@router.put("/{hotel_id}/rooms/{room_id}")
+async def edit_room(
+        hotel_id: int, #проверить а нужен ли вообще hotel_id
+        room_id: int,
+        room_data: RoomAddRequest,
+):
+    async with async_session_maker() as session:
+        try:
+            result = await RoomsRepository(session=session).edit(data=room_data, hotel_id=hotel_id, id=room_id)
+            await session.commit()
+            return {"status": "OK", "data": result}
+        except NoResultFound:
+            await session.rollback()
+            raise HTTPException(status_code=404, detail='no result found')
+        except MultipleResultsFound:
+            await session.rollback()
+            raise HTTPException(status_code=400, detail='multiple result found')
+
 #
 # @router.patch(
 #     "{hotel_id}",
