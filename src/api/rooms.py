@@ -8,7 +8,7 @@ from src.api.dependencies import PaginationDep
 from src.database import async_session_maker, engine
 from src.repositories.rooms import RoomsRepository
 from src.schemas.hotels import Hotel, HotelPatch, HotelAdd
-from src.schemas.rooms import RoomAdd, RoomAddRequest
+from src.schemas.rooms import RoomAdd, RoomAddRequest, RoomPatchRequest
 
 router = APIRouter(prefix='/hotels', tags=["Комнаты"])
 
@@ -84,29 +84,35 @@ async def edit_room(
             await session.rollback()
             raise HTTPException(status_code=400, detail='multiple result found')
 
-#
-# @router.patch(
-#     "{hotel_id}",
-#     summary="Частичное обновление данных об отеле",
-#     description="<h1>Тут мы частично обновляем данные об отеле: можно отправить name, а можно title</h1>",
-# )
-# async def partially_edit_hotel(
-#         hotel_id: int,
-#         hotel_data: HotelPatch,
-# ):
-#     async with async_session_maker() as session:
-#         try:
-#             result = await HotelsRepository(session=session).edit(exclude_unset=True, data=hotel_data, id=hotel_id)
-#             await session.commit()
-#             return {"status": "OK", "data": result}
-#         except NoResultFound:
-#             await session.rollback()
-#             raise HTTPException(status_code=404, detail='no result found')
-#         except MultipleResultsFound:
-#             await session.rollback()
-#             raise HTTPException(status_code=400, detail='multiple result found')
-#
-#
+
+@router.patch(
+    "/{hotel_id}/rooms/{room_id}",
+    summary="Частичное обновление данных о комнате",
+    description="<h1>можно менять данные о комнате",
+)
+async def partially_edit_room(
+        hotel_id: int,  # проверить а нужен ли вообще hotel_id
+        room_id: int,
+        room_data: RoomPatchRequest,
+):
+    async with async_session_maker() as session:
+        try:
+            result = await RoomsRepository(session=session).edit(
+                data=room_data,
+                hotel_id=hotel_id,
+                id=room_id,
+                exclude_unset=True
+            )
+            await session.commit()
+            return {"status": "OK", "data": result}
+        except NoResultFound:
+            await session.rollback()
+            raise HTTPException(status_code=404, detail='no result found')
+        except MultipleResultsFound:
+            await session.rollback()
+            raise HTTPException(status_code=400, detail='multiple result found')
+
+
 # @router.delete("{hotel_id}")
 # async def delete_hotel(hotel_id: int):
 #     async with async_session_maker() as session:
