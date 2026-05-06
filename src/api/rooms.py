@@ -1,5 +1,6 @@
+from datetime import date
 
-from fastapi import APIRouter, Body, HTTPException
+from fastapi import APIRouter, Body, HTTPException, Query
 
 from src.api.dependencies import DBDep
 from src.schemas.rooms import RoomAdd, RoomAddRequest, RoomPatchRequest, RoomPatch
@@ -11,9 +12,17 @@ router = APIRouter(prefix='/hotels', tags=["Номера"])
 async def get_rooms(
         db: DBDep,
         hotel_id: int,
+        date_from: date = Query(example="2026-01-01"),
+        date_to: date = Query(example="2026-02-01"),
 ):
-    return await db.rooms.get_filtered(hotel_id=hotel_id)
+    return await db.rooms.get_filtered_by_time(hotel_id=hotel_id, date_from=date_from, date_to=date_to)
 
+# @router.get("/{hotel_id}/rooms")
+# async def get_rooms(
+#         db: DBDep,
+#         hotel_id: int,
+# ):
+#     return await db.rooms.get_filtered(hotel_id=hotel_id)
 @router.get("/{hotel_id}/rooms/{room_id}")
 async def get_room(
         db: DBDep,
