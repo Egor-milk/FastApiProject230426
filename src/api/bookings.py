@@ -10,6 +10,21 @@ from src.services.auth import AuthService
 
 router = APIRouter(prefix="/bookings", tags=["Бронирования"])
 
+@router.get("")
+async def get_bookings(
+        db: DBDep,
+):
+    result = await db.bookings.get_all()
+    return {"status": "ok", "data": result}
+
+@router.get("/me")
+async def get_my_bookings(
+        db: DBDep,
+        user_id: UserIdDep
+):
+    result = await db.bookings.get_filtered(user_id=user_id)
+    return {"status": "ok", "data": result}
+
 @router.post("")
 async def bookings(
         db: DBDep,
