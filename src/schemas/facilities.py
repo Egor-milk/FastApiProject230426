@@ -1,6 +1,5 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
-from src.schemas.rooms import RoomAdd
 
 
 class FacilityAdd(BaseModel):
@@ -9,6 +8,8 @@ class FacilityAdd(BaseModel):
 
 class Facility(FacilityAdd):
     id: int
+
+    model_config = ConfigDict(from_attributes=True)
 
 class RoomFacilityAdd(BaseModel):
     room_id: int
