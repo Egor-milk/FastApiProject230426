@@ -2,11 +2,12 @@ from pydantic import BaseModel
 from sqlalchemy import select, insert, update, delete
 
 from src.database import engine
+from src.repositories.mappers.base import DataMapper
 
 
 class BaseRepository:
     model = None
-    schema: BaseModel = None
+    mapper: DataMapper = None
 
     def __init__(self, session):
         self.session = session
@@ -18,7 +19,7 @@ class BaseRepository:
             .filter_by(**filter_by)
         )
         result = await self.session.execute(query)
-        return [self.schema.model_validate(model, from_attributes=True) for model in result.scalars().all()]
+        return [self.mapper.map_to_domain_entity(model) for model in result.scalars().all()]
 
     async def get_all(self, *args, **kwargs):
         return await self.get_filtered()
@@ -29,14 +30,14 @@ class BaseRepository:
         model = result.scalars().one_or_none()
         if model is None:
             return None
-        return self.schema.model_validate(model, from_attributes=True)
+        return self.mapper.map_to_domain_entity(model)
 
     async def add(self, data: BaseModel):
         add_hotel_stmt = insert(self.model).values(**data.model_dump()).returning(self.model)
         print(add_hotel_stmt.compile(engine, compile_kwargs={"literal_binds": True})) # показывает данные которые отправляются в бд
         hotel = await self.session.execute(add_hotel_stmt)
         model = hotel.scalars().one()
-        return self.schema.model_validate(model, from_attributes=True)
+        return self.mapper.map_to_domain_entity(model)
 
     async def add_bulk(self, data: list[BaseModel]): #bulk - много данных
         add_hotel_stmt = insert(self.model).values([item.model_dump() for item in data])
@@ -53,11 +54,11 @@ class BaseRepository:
         print(edit_hotel_stmt.compile(engine, compile_kwargs={"literal_binds": True}))
         hotel = await self.session.execute(edit_hotel_stmt)
         model = hotel.scalars().one()
-        return self.schema.model_validate(model, from_attributes=True)
+        return self.mapper.map_to_domain_entity(model)
 
     async def delete(self, **filter_by):
         delete_hotel_stmt = delete(self.model).filter_by(**filter_by).returning(self.model)
         print(delete_hotel_stmt.compile(engine, compile_kwargs={"literal_binds": True}))
         hotel = await self.session.execute(delete_hotel_stmt)
         model = hotel.scalars().one()
-        return self.schema.model_validate(model, from_attributes=True)
+        return self.mapper.map_to_domain_entity(model)
