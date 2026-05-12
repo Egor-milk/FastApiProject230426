@@ -1,11 +1,8 @@
-from datetime import date
-import json
-from fastapi import Query, APIRouter, Body, HTTPException
+from fastapi import APIRouter, Body
+from fastapi_cache.decorator import cache
 
-from sqlalchemy.exc import MultipleResultsFound
 
-from src.api.dependencies import PaginationDep, DBDep
-from src.init import redis_manager
+from src.api.dependencies import DBDep
 from src.schemas.facilities import *
 
 
@@ -13,22 +10,11 @@ router = APIRouter(prefix='/facilities', tags=["Удобства"])
 
 
 @router.get("")
-async def get_facilities(
-        db: DBDep,
-):
-    facilities_from_cache = await redis_manager.get("facilities")
-    print(f"{facilities_from_cache}")
-    if not facilities_from_cache:
-        print("query to db")
-        facilities = await db.facilities.get_all()
-        facilities_schemas: list[dict] = [f.model_dump() for f in facilities]
-        facilities_json = json.dumps(facilities_schemas)
-        await redis_manager.set("facilities", facilities_json, expire=10)
+@cache(expire=10)
+async def get_facilities(db: DBDep):
+    print("query to db")
+    return await db.facilities.get_all()
 
-        return facilities
-    else:
-        facilities_dict = json.loads(facilities_from_cache)
-        return facilities_dict
 @router.post("")
 async def create_facilities(
         db: DBDep,

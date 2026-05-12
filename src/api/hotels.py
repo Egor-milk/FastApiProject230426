@@ -1,6 +1,8 @@
 from datetime import date
 
 from fastapi import Query, APIRouter, Body, HTTPException
+from fastapi_cache.decorator import cache
+
 
 from sqlalchemy.exc import MultipleResultsFound
 
@@ -12,6 +14,7 @@ router = APIRouter(prefix='/hotels', tags=["Отели"])
 
 
 @router.get("")
+@cache(expire=10)
 async def get_hotels( #теперь выдает только отели где есть свободные номера
         pagination: PaginationDep,
         db: DBDep,
