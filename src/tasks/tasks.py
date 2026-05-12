@@ -1,0 +1,11 @@
+from time import sleep
+
+from src.tasks.celery_app import celery_instance
+
+
+@celery_instance.task
+def test_task():
+    sleep(5)
+    print("я молодец")
+
+#celery -A src.tasks.celery_app:celery_instance worker -l INFO --pool=solo
