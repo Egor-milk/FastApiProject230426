@@ -10,11 +10,7 @@ from sqlalchemy.orm import DeclarativeBase
 
 from src.config import settings
 from src.database import Base
-from src.models.hotels import HotelsOrm #нужно обязательно импортировать с Base
-from src.models.rooms import RoomsOrm
-from src.models.users import UsersOrm
-from src.models.bookings import BookingsOrm
-from src.models.facilities import FacilitiesOrm #можно импортить любую ORM модель
+from src.models import * #__init__.py
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
