@@ -1,6 +1,7 @@
 from datetime import date
 
 from fastapi import Query, APIRouter, Body, HTTPException
+from fastapi.openapi.models import Example
 from fastapi_cache.decorator import cache
 
 
@@ -20,8 +21,8 @@ async def get_hotels( #теперь выдает только отели где 
         db: DBDep,
         title: str | None = Query(None, description="Название отеля"),
         location: str | None = Query(None, description="Местоположение"),
-        date_from: date = Query(example="2026-01-01"),
-        date_to: date = Query(example="2026-02-01"),
+        date_from: date = Query(default="2026-01-01"),
+        date_to: date = Query(default="2026-02-01"),
 ):
     per_page = pagination.per_page or 5
     return await db.hotels.get_filtered_by_time(
@@ -50,20 +51,19 @@ async def create_hotel(
         db: DBDep,
         hotel_data: HotelAdd = Body(
             openapi_examples={
-                '1': {
-                    'summary': 'sochi',
-                    'value': {
+                '1': Example(
+                    summary="sochi",
+                    value={
                         'title': 'hotel',
                         'location': 'sochi',
-                      }
-                },
-                '2': {
-                    'summary': 'dubai',
-                    'value': {
-                        'title': 'hotel_2',
-                        'location': 'dubai',
-                      }
-                }
+                    }
+                ),
+                '2': Example(
+                    summary="dubai",
+                    value={'title': 'hotel_2',
+                           'location': 'dubai',
+                    }
+                )
             })
 ):
     hotel = await db.hotels.add(data=hotel_data)

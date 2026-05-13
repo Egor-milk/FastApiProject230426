@@ -1,6 +1,8 @@
 from datetime import date
+from tkinter.scrolledtext import example
 
 from fastapi import APIRouter, Body, Query
+from fastapi.openapi.models import Example
 
 from src.api.dependencies import DBDep
 from src.schemas.facilities import RoomFacilityAdd
@@ -13,8 +15,8 @@ router = APIRouter(prefix='/hotels', tags=["Номера"])
 async def get_rooms(
         db: DBDep,
         hotel_id: int,
-        date_from: date = Query(example="2026-01-01"),
-        date_to: date = Query(example="2026-02-01"),
+        date_from: date = Query(default = "2026-01-01"),
+        date_to: date = Query(default = "2026-02-01"),
 ):
     return await db.rooms.get_filtered_by_time(hotel_id=hotel_id, date_from=date_from, date_to=date_to)
 
@@ -34,9 +36,9 @@ async def create_rooms(
         hotel_id: int,
         room_data: RoomAddRequest = Body(
             openapi_examples={
-                "1": {
-                    "summary": "test_room_1",
-                    "value": {
+                '1': Example(
+                    summary="test_room_1",
+                    value={
                         "title": "luxe_1",
                         "description": "very luxe room",
                         "price": 10000,
@@ -45,10 +47,10 @@ async def create_rooms(
                             1, 2
                         ],
                     }
-                },
-                "2": {
-                    "summary": "test_room_2",
-                    "value": {
+                ),
+                '2': Example(
+                    summary="test_room_2",
+                    value={
                         "title": "econom",
                         "description": "low price room",
                         "price": 100,
@@ -57,13 +59,14 @@ async def create_rooms(
                             1, 2
                         ],
                     }
-                }
+                )
             })
 ):
     _room_data = RoomAdd(hotel_id=hotel_id, **room_data.model_dump())
     room = await db.rooms.add(data=_room_data)
-    rooms_facilities_data = [RoomFacilityAdd(room_id=room.id, facility_id=f_id) for f_id in room_data.facilities_ids]
-    await db.rooms_facilities.add_bulk(rooms_facilities_data)
+    if room_data.facilities_ids:
+        rooms_facilities_data = [RoomFacilityAdd(room_id=room.id, facility_id=f_id) for f_id in room_data.facilities_ids]
+        await db.rooms_facilities.add_bulk(rooms_facilities_data)
     await db.commit()
     return {"status": "OK", "data": room}
 
