@@ -1,6 +1,10 @@
 import json
+from http import cookies
 from typing import Any, AsyncGenerator
 from unittest import mock
+
+from src.api import auth
+
 
 def empty_cache(*args, **kwargs):
     def wrapper(func):
@@ -80,8 +84,19 @@ async def register_user(ac, setup_database):
         }
     )
 
-
-
+@pytest.fixture(scope="session")
+async def authenticated_ac(register_user, ac):
+    await ac.post(
+        "/auth/login",
+        json={
+            "email": "test@mail.ru",
+            "password": "1234",
+        }
+    )
+    assert ac.cookies["access_token"]
+    print(f"cookies: {ac.cookies}")
+    yield ac
+    
 # pytest -v -s
 
 
