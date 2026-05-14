@@ -1,7 +1,7 @@
 from datetime import date
 
 from fastapi import HTTPException
-from sqlalchemy import select, insert
+from sqlalchemy import select, insert, delete
 from sqlalchemy.orm import selectinload
 
 from src.database import engine
@@ -41,3 +41,8 @@ class BookingsRepository(BaseRepository):
             return new_booking
         else:
             raise HTTPException(status_code=409)
+
+    async def delete_all_bookings(self):
+        query = delete(BookingsOrm)
+        print(query.compile(engine, compile_kwargs={"literal_binds": True}))
+        await self.session.execute(query)
