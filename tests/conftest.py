@@ -1,5 +1,13 @@
 import json
 from typing import Any, AsyncGenerator
+from unittest import mock
+
+def empty_cache(*args, **kwargs):
+    def wrapper(func):
+        return func
+    return wrapper
+
+mock.patch("fastapi_cache.decorator.cache", empty_cache).start()
 
 import pytest
 
