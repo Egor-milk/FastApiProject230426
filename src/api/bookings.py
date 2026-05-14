@@ -1,10 +1,13 @@
 
+
 from fastapi import Query, APIRouter, Body, HTTPException
+from fastapi.openapi.models import Example
 
 from sqlalchemy.exc import MultipleResultsFound
 
 from src.api.dependencies import DBDep, UserIdDep
 from src.schemas.booking import BookingAdd, Booking, BookingAddRequest
+from src.schemas.hotels import Hotel
 from src.schemas.rooms import Room
 from src.services.auth import AuthService
 
@@ -29,31 +32,33 @@ async def get_my_bookings(
 async def bookings(
         db: DBDep,
         user_id: UserIdDep,
-        booking_data: BookingAddRequest = Body(openapi_examples={
-                '1': {
-                    'summary': 'test_booking_1',
-                    'value': {
-                            "room_id": 27,
+        booking_data: BookingAddRequest = Body(
+            openapi_examples={
+                '1': Example(
+                    summary='test_booking_1',
+                    value= {
+                            "room_id": 34,
                             "date_from": "2026-01-01",
-                            "date_to": "2026-01-11"
-                      }
-                },
-                '2': {
-                    'summary': 'dubai',
-                    'value': {
+                            "date_to": "2026-02-01"
+                    }
+                ),
+                '2': Example(
+                    summary= 'dubai',
+                    value= {
                         "room_id": 28,
-                        "date_from": "2026-02-01",
-                        "date_to": "2026-02-11"
-                      }
-                }
+                        "date_from": "2026-01-01",
+                        "date_to": "2026-02-01"
+                    }
+                )
             }),
 ):
     room: Room = await db.rooms.get_one_or_none(id=booking_data.room_id)
+    hotel: Hotel = await db.hotels.get_one_or_none(id=room.hotel_id)
     _booking_data = BookingAdd(
         user_id=user_id,
         price = room.price,
         **booking_data.model_dump()
     )
-    result = await db.bookings.add(_booking_data)
+    result = await db.bookings.add_booking(_booking_data, hotel_id=hotel.id)
     await db.commit()
     return {"status": "ok", "data": result}
