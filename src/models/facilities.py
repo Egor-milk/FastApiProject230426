@@ -1,4 +1,4 @@
-#facilities - услуги
+# facilities - услуги
 import typing
 
 from sqlalchemy import String, ForeignKey
@@ -8,6 +8,7 @@ from src.database import Base
 
 if typing.TYPE_CHECKING:
     from src.models import RoomsOrm
+
 
 class FacilitiesOrm(Base):
     __tablename__ = "facilities"
@@ -20,7 +21,8 @@ class FacilitiesOrm(Base):
         secondary="rooms_facilities",
     )
 
-class RoomsFacilitiesOrm(Base): #таблица many-to-many для соотнесений комнаты и удобства
+
+class RoomsFacilitiesOrm(Base):  # таблица many-to-many для соотнесений комнаты и удобства
     __tablename__ = "rooms_facilities"
 
     id: Mapped[int] = mapped_column(primary_key=True)

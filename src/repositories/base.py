@@ -13,11 +13,7 @@ class BaseRepository:
         self.session = session
 
     async def get_filtered(self, *filter, **filter_by):
-        query = (
-            select(self.model)
-            .filter(*filter)
-            .filter_by(**filter_by)
-        )
+        query = select(self.model).filter(*filter).filter_by(**filter_by)
         result = await self.session.execute(query)
         return [self.mapper.map_to_domain_entity(model) for model in result.scalars().all()]
 
@@ -34,23 +30,26 @@ class BaseRepository:
 
     async def add(self, data: BaseModel):
         add_hotel_stmt = insert(self.model).values(**data.model_dump()).returning(self.model)
-        print(add_hotel_stmt.compile(engine, compile_kwargs={"literal_binds": True})) # показывает данные которые отправляются в бд
+        print(
+            add_hotel_stmt.compile(engine, compile_kwargs={"literal_binds": True})
+        )  # показывает данные которые отправляются в бд
         hotel = await self.session.execute(add_hotel_stmt)
         model = hotel.scalars().one()
         return self.mapper.map_to_domain_entity(model)
 
-    async def add_bulk(self, data: list[BaseModel]): #bulk - много данных
+    async def add_bulk(self, data: list[BaseModel]):  # bulk - много данных
         add_hotel_stmt = insert(self.model).values([item.model_dump() for item in data])
 
         await self.session.execute(add_hotel_stmt)
 
-
-    async def edit(self, data: BaseModel, exclude_unset: bool=False, **filter_by):
-        edit_hotel_stmt = (update(self.model)
-                           .filter_by(**filter_by)
-                           .values(**data.model_dump(exclude_unset=exclude_unset))
-                           .returning(self.model))
-        #exclude_unset=True позволяет не вставлять не переданные параметры
+    async def edit(self, data: BaseModel, exclude_unset: bool = False, **filter_by):
+        edit_hotel_stmt = (
+            update(self.model)
+            .filter_by(**filter_by)
+            .values(**data.model_dump(exclude_unset=exclude_unset))
+            .returning(self.model)
+        )
+        # exclude_unset=True позволяет не вставлять не переданные параметры
         print(edit_hotel_stmt.compile(engine, compile_kwargs={"literal_binds": True}))
         hotel = await self.session.execute(edit_hotel_stmt)
         model = hotel.scalars().one()

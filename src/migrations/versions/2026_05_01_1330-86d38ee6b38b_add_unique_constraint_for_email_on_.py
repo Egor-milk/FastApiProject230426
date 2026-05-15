@@ -1,4 +1,4 @@
-#ruff: noqa
+# ruff: noqa
 
 """add unique constraint for email on table users
 

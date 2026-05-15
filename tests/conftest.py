@@ -3,11 +3,12 @@ import json
 from unittest import mock
 
 
-
 def empty_cache(*args, **kwargs):
     def wrapper(func):
         return func
+
     return wrapper
+
 
 mock.patch("fastapi_cache.decorator.cache", empty_cache).start()
 
@@ -17,7 +18,7 @@ from src.api.dependencies import get_db
 from src.config import settings
 from src.database import Base, engine_null_pool
 from src.main import app
-from src.models import * # noqa
+from src.models import *  # noqa
 from src.database import async_session_maker_null_pool
 
 from httpx import AsyncClient, ASGITransport
@@ -27,10 +28,10 @@ from src.schemas.rooms import RoomAdd
 from src.utils.db_manager import DBManager
 
 
-
 @pytest.fixture(scope="session", autouse=True)
 def check_test_mode():
     assert settings.MODE == "TEST"
+
 
 async def get_db_null_pool() -> DBManager:
     async with DBManager(session_factory=async_session_maker_null_pool) as db:
@@ -45,8 +46,11 @@ async def db() -> DBManager:
 
 app.dependency_overrides[get_db] = get_db_null_pool
 
-#session - сессия тестирования
-@pytest.fixture(scope="session", autouse=True) #autouse - автоматический запуск кода при вызове pytest в консоли
+
+# session - сессия тестирования
+@pytest.fixture(
+    scope="session", autouse=True
+)  # autouse - автоматический запуск кода при вызове pytest в консоли
 async def setup_database(check_test_mode):
     async with engine_null_pool.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
@@ -72,6 +76,7 @@ async def ac():
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
 
+
 @pytest.fixture(scope="session", autouse=True)
 async def register_user(ac, setup_database):
     await ac.post(
@@ -79,8 +84,9 @@ async def register_user(ac, setup_database):
         json={
             "email": "test@mail.ru",
             "password": "1234",
-        }
+        },
     )
+
 
 @pytest.fixture(scope="session")
 async def authenticated_ac(register_user, ac):
@@ -89,12 +95,13 @@ async def authenticated_ac(register_user, ac):
         json={
             "email": "test@mail.ru",
             "password": "1234",
-        }
+        },
     )
     assert ac.cookies["access_token"]
     print(f"cookies: {ac.cookies}")
     yield ac
-    
+
+
 # pytest -v -s
 
 

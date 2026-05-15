@@ -16,13 +16,13 @@ class HotelsRepository(BaseRepository):
     mapper = HotelDataMapper
 
     async def get_filtered_by_time(
-            self,
-            location,
-            title,
-            date_from: date,
-            date_to: date,
-            limit,
-            offset,
+        self,
+        location,
+        title,
+        date_from: date,
+        date_to: date,
+        limit,
+        offset,
     ) -> list[schema]:
 
         rooms_ids_to_get = rooms_ids_for_booking(date_from, date_to)
@@ -36,10 +36,7 @@ class HotelsRepository(BaseRepository):
             query = query.filter(HotelsOrm.location.ilike(f"%{location.strip()}%"))
         if title:
             query = query.filter(HotelsOrm.title.ilike(f"%{title.strip()}%"))
-        query = (query
-            .limit(limit)
-            .offset(offset)
-            )
+        query = query.limit(limit).offset(offset)
         result = await self.session.execute(query)
 
         return [self.mapper.map_to_domain_entity(hotel) for hotel in result.scalars().all()]

@@ -1,4 +1,4 @@
-#ruff: noqa
+# ruff: noqa
 
 """Пересоздал базу
 Revision ID: ef7dd735e258

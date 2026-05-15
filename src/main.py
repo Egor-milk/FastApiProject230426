@@ -1,4 +1,3 @@
-
 import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -10,7 +9,7 @@ from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 
 
-sys.path.append(str(Path(__file__).parent.parent)) #костыль, скорее всего потом удалится.
+sys.path.append(str(Path(__file__).parent.parent))  # костыль, скорее всего потом удалится.
 # Нужен чтобы работал следующий имп
 from src.init import redis_manager
 from src.api.hotels import router as router_hotels
@@ -19,6 +18,7 @@ from src.api.rooms import router as router_rooms
 from src.api.bookings import router as router_bookings
 from src.api.facilities import router as router_facilities
 from src.api.images import router as router_images
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

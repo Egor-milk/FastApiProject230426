@@ -5,7 +5,6 @@ from src.repositories.rooms import RoomsRepository
 from src.repositories.users import UsersRepository
 
 
-
 class DBManager:
     def __init__(self, session_factory):
         self.session_factory = session_factory
@@ -25,7 +24,6 @@ class DBManager:
     async def __aexit__(self, *args):
         await self.session.rollback()
         await self.session.close()
-
 
     async def commit(self):
         await self.session.commit()

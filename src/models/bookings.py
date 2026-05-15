@@ -17,6 +17,6 @@ class BookingsOrm(Base):
     date_to: Mapped[date]
     price: Mapped[int]
 
-    @hybrid_property #типа property в sqlalchemy
+    @hybrid_property  # типа property в sqlalchemy
     def total_cost(self) -> int:
         return self.price * (self.date_to - self.date_from).days
