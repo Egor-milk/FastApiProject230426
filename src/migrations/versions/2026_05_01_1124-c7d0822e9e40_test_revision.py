@@ -1,3 +1,5 @@
+#ruff: noqa
+
 """test revision
 
 Revision ID: c7d0822e9e40

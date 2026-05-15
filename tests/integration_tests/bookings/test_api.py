@@ -20,7 +20,7 @@ async def test_add_booking(
         db, authenticated_ac):
     #room_id = (await db.rooms.get_all())[0].id
     response = await authenticated_ac.post(
-        f"/bookings",
+        "/bookings",
         json={
             "room_id": room_id,
             "date_from": date_from,
@@ -52,7 +52,7 @@ async def test_add_and_get_bookings(
         delete_all_bookings, authenticated_ac
 ):
     response = await authenticated_ac.post(
-        f"/bookings",
+        "/bookings",
         json={
             "room_id": room_id,
             "date_from": date_from,
@@ -61,7 +61,7 @@ async def test_add_and_get_bookings(
     )
     assert response.status_code == status_code
     get_response = await authenticated_ac.get(
-        f"/bookings/me",
+        "/bookings/me",
     )
     assert get_response.status_code == status_code
     assert len(get_response.json()["data"]) == count_of_bookings

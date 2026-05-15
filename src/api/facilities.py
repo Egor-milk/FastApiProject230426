@@ -2,10 +2,9 @@
 from fastapi import APIRouter, Body
 from fastapi.openapi.models import Example
 from fastapi_cache.decorator import cache
-from src.tasks.tasks import test_task
 
 from src.api.dependencies import DBDep
-from src.schemas.facilities import *
+from src.schemas.facilities import * # noqa
 
 
 router = APIRouter(prefix='/facilities', tags=["Удобства"])
@@ -20,7 +19,7 @@ async def get_facilities(db: DBDep):
 @router.post("")
 async def create_facilities(
         db: DBDep,
-        facilities_data: FacilityAdd = Body(openapi_examples={
+        facilities_data: FacilityAdd = Body(openapi_examples={ #noqa F405
             '1': Example(
                 summary='test1',
                 value={

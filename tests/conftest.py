@@ -1,9 +1,7 @@
+# ruff: noqa: E402
 import json
-from http import cookies
-from typing import Any, AsyncGenerator
 from unittest import mock
 
-from src.api import auth
 
 
 def empty_cache(*args, **kwargs):
@@ -19,7 +17,7 @@ from src.api.dependencies import get_db
 from src.config import settings
 from src.database import Base, engine_null_pool
 from src.main import app
-from src.models import * #__init__.py
+from src.models import * # noqa
 from src.database import async_session_maker_null_pool
 
 from httpx import AsyncClient, ASGITransport

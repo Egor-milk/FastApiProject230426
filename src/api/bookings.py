@@ -1,15 +1,13 @@
 
 
-from fastapi import Query, APIRouter, Body, HTTPException
+from fastapi import APIRouter, Body
 from fastapi.openapi.models import Example
 
-from sqlalchemy.exc import MultipleResultsFound
 
 from src.api.dependencies import DBDep, UserIdDep
-from src.schemas.booking import BookingAdd, Booking, BookingAddRequest
+from src.schemas.booking import BookingAdd, BookingAddRequest
 from src.schemas.hotels import Hotel
 from src.schemas.rooms import Room
-from src.services.auth import AuthService
 
 router = APIRouter(prefix="/bookings", tags=["Бронирования"])
 

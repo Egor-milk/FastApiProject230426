@@ -1,5 +1,3 @@
-from src.schemas.facilities import Facility
-
 
 async def test_get_facilities(ac):
     response = await ac.get("/facilities")

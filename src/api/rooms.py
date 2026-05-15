@@ -1,5 +1,4 @@
 from datetime import date
-from tkinter.scrolledtext import example
 
 from fastapi import APIRouter, Body, Query
 from fastapi.openapi.models import Example

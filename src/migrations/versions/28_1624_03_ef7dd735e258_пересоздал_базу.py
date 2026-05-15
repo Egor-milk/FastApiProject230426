@@ -1,5 +1,6 @@
-"""Пересоздал базу
+#ruff: noqa
 
+"""Пересоздал базу
 Revision ID: ef7dd735e258
 Revises: 9554a7bcdba3
 Create Date: 2026-04-28 16:24:03.399131

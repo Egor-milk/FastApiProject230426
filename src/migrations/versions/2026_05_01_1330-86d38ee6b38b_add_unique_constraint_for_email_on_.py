@@ -1,3 +1,5 @@
+#ruff: noqa
+
 """add unique constraint for email on table users
 
 Revision ID: 86d38ee6b38b

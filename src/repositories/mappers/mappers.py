@@ -4,7 +4,7 @@ from src.models.hotels import HotelsOrm
 from src.models.rooms import RoomsOrm
 from src.models.users import UsersOrm
 from src.repositories.mappers.base import DataMapper
-from src.schemas.booking import Booking, BookingAdd
+from src.schemas.booking import Booking
 from src.schemas.facilities import Facility, RoomFacility
 from src.schemas.hotels import Hotel
 from src.schemas.rooms import Room, RoomWithRels

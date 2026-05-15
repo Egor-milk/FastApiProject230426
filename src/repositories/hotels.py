@@ -1,9 +1,7 @@
 from datetime import date
 
-from pydantic import BaseModel
 from sqlalchemy import select
 
-from src.database import engine
 from src.models.hotels import HotelsOrm
 from src.models.rooms import RoomsOrm
 from src.repositories.base import BaseRepository

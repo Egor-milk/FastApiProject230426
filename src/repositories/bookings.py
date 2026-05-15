@@ -1,8 +1,7 @@
 from datetime import date
 
 from fastapi import HTTPException
-from sqlalchemy import select, insert, delete
-from sqlalchemy.orm import selectinload
+from sqlalchemy import select, delete
 
 from src.database import engine
 from src.models.bookings import BookingsOrm
