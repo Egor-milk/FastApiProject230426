@@ -4,6 +4,7 @@ from fastapi import HTTPException
 from sqlalchemy import select, delete
 
 from src.database import engine
+from src.exceptions import AllRoomsAreBookedException
 from src.models.bookings import BookingsOrm
 from src.repositories.base import BaseRepository
 from src.repositories.mappers.mappers import BookingDataMapper
@@ -32,8 +33,8 @@ class BookingsRepository(BaseRepository):
         if booking_data.room_id in rooms_ids_to_book:
             new_booking = await self.add(booking_data)
             return new_booking
-        else:
-            raise HTTPException(status_code=409)
+
+        raise AllRoomsAreBookedException
 
     async def delete_all_bookings(self):
         query = delete(BookingsOrm)

@@ -3,7 +3,7 @@ from fastapi.openapi.models import Example
 
 
 from src.api.dependencies import DBDep, UserIdDep
-from src.exceptions import ObjectNotFoundException
+from src.exceptions import ObjectNotFoundException, AllRoomsAreBookedException
 from src.schemas.booking import BookingAdd, BookingAddRequest
 from src.schemas.hotels import Hotel
 from src.schemas.rooms import Room
@@ -26,7 +26,7 @@ async def get_my_bookings(db: DBDep, user_id: UserIdDep):
 
 
 @router.post("")
-async def bookings(
+async def add_booking(
     db: DBDep,
     user_id: UserIdDep,
     booking_data: BookingAddRequest = Body(
@@ -48,6 +48,9 @@ async def bookings(
         raise HTTPException(status_code=400, detail="Номер не найден")
     hotel: Hotel = await db.hotels.get_one(id=room.hotel_id)
     _booking_data = BookingAdd(user_id=user_id, price=room.price, **booking_data.model_dump())
-    result = await db.bookings.add_booking(_booking_data, hotel_id=hotel.id)
+    try:
+        result = await db.bookings.add_booking(_booking_data, hotel_id=hotel.id)
+    except AllRoomsAreBookedException as ex:
+        raise HTTPException(status_code=409, detail=ex.detail)
     await db.commit()
     return {"status": "ok", "data": result}
