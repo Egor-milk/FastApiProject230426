@@ -1,11 +1,11 @@
+import logging
 from typing import Sequence, Any
 
 import sqlalchemy
 from asyncpg.exceptions import UniqueViolationError
 from pydantic import BaseModel
 from sqlalchemy import select, insert, update, delete
-from sqlalchemy.exc import NoResultFound, IntegrityError
-
+from sqlalchemy.exc import NoResultFound, IntegrityError # noqa
 from src.database import engine, Base
 from src.exceptions import ObjectNotFoundException, ObjectAlreadyExistsException
 from src.repositories.mappers.base import DataMapper
@@ -52,9 +52,13 @@ class BaseRepository:
         try:
             hotel = await self.session.execute(add_hotel_stmt)
         except IntegrityError as error:
+            logging.error(
+                f"Не удалось добавить данные в БД. Входные данные={data}. Тип ошибки:{type(error.orig.__cause__)=}"
+            )
             if isinstance(error.orig.__cause__, UniqueViolationError):
                 raise ObjectAlreadyExistsException from error
             else:
+                logging.error(f"Неизвестная ошибка. Входные данные={data}. Тип ошибки:{type(error.orig.__cause__)}")
                 raise error
         model = hotel.scalars().one()
         return self.mapper.map_to_domain_entity(model)

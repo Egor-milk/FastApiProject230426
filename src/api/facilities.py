@@ -19,8 +19,8 @@ async def get_facilities(db: DBDep):
 @router.post("")
 async def create_facilities(
     db: DBDep,
-    facilities_data: FacilityAdd = Body(
-        openapi_examples={  # noqa F405
+    facilities_data: FacilityAdd = Body( # noqa F405
+        openapi_examples={
             "1": Example(
                 summary="test1",
                 value={

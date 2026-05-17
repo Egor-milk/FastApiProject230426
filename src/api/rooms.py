@@ -1,7 +1,6 @@
 from datetime import date
 
-from amqp import NotFound
-from fastapi import APIRouter, Body, Query, HTTPException
+from fastapi import APIRouter, Body, Query
 from fastapi.openapi.models import Example
 
 from src.api.dependencies import DBDep
@@ -63,7 +62,7 @@ async def create_rooms(
     ),
 ):
     try:
-        hotel = await db.hotels.get_one(hotel_id=hotel_id)
+        await db.hotels.get_one(hotel_id=hotel_id)
     except ObjectNotFoundException:
         raise HotelNotFoundException
 
