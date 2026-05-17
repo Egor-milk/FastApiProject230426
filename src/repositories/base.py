@@ -1,12 +1,13 @@
 from typing import Sequence, Any
 
 import sqlalchemy
+from asyncpg.exceptions import UniqueViolationError
 from pydantic import BaseModel
 from sqlalchemy import select, insert, update, delete
-from sqlalchemy.exc import NoResultFound
+from sqlalchemy.exc import NoResultFound, IntegrityError
 
 from src.database import engine, Base
-from src.exceptions import ObjectNotFoundException
+from src.exceptions import ObjectNotFoundException, ObjectAlreadyExistsException
 from src.repositories.mappers.base import DataMapper
 
 
@@ -30,8 +31,8 @@ class BaseRepository:
         query = select(self.model).filter_by(**filter_by)
         result = await self.session.execute(query)
         model = result.scalars().one_or_none()
-        if model is None:
-            return None
+        # if model is None:
+        #     return None
         return self.mapper.map_to_domain_entity(model)
 
     async def get_one(self, **filter_by) -> BaseModel:
@@ -45,10 +46,16 @@ class BaseRepository:
 
     async def add(self, data: BaseModel):
         add_hotel_stmt = insert(self.model).values(**data.model_dump()).returning(self.model)
-        print(
-            add_hotel_stmt.compile(engine, compile_kwargs={"literal_binds": True})
-        )  # показывает данные которые отправляются в бд
-        hotel = await self.session.execute(add_hotel_stmt)
+        #print(
+        #    add_hotel_stmt.compile(engine, compile_kwargs={"literal_binds": True})
+        #)  # показывает данные которые отправляются в бд
+        try:
+            hotel = await self.session.execute(add_hotel_stmt)
+        except IntegrityError as error:
+            if isinstance(error.orig.__cause__, UniqueViolationError):
+                raise ObjectAlreadyExistsException from error
+            else:
+                raise error
         model = hotel.scalars().one()
         return self.mapper.map_to_domain_entity(model)
 

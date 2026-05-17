@@ -8,6 +8,7 @@ from fastapi_cache.decorator import cache
 from sqlalchemy.exc import MultipleResultsFound
 
 from src.api.dependencies import PaginationDep, DBDep
+from src.exceptions import check_date_to_after_date_from, ObjectNotFoundException, HotelNotFoundException
 from src.schemas.hotels import HotelPatch, HotelAdd
 
 
@@ -25,6 +26,7 @@ async def get_hotels(  # теперь выдает только отели гд�
     date_to: date = Query(default="2026-02-01"),
 ):
     per_page = pagination.per_page or 5
+    check_date_to_after_date_from(date_to=date_to, date_from=date_from)
     return await db.hotels.get_filtered_by_time(
         location=location,
         title=title,
@@ -35,15 +37,19 @@ async def get_hotels(  # теперь выдает только отели гд�
     )
 
 
+
+
 @router.get("/{hotel_id}")
 async def get_hotel(
     db: DBDep,
     hotel_id: int,
 ):
     try:
-        return await db.hotels.get_one_or_none(id=hotel_id)
+        return await db.hotels.get_one(id=hotel_id)
     except MultipleResultsFound:
         raise HTTPException(status_code=400, detail="multiple result found")
+    except ObjectNotFoundException:
+        raise HotelNotFoundException
 
 
 @router.post("")
@@ -68,6 +74,7 @@ async def create_hotel(
         }
     ),
 ):
+
     hotel = await db.hotels.add(data=hotel_data)
     await db.commit()
 
