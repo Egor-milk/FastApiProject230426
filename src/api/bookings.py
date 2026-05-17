@@ -3,10 +3,12 @@ from fastapi.openapi.models import Example
 
 
 from src.api.dependencies import DBDep, UserIdDep
-from src.exceptions import ObjectNotFoundException, AllRoomsAreBookedException, RoomNotFoundHTTPException
+from src.exceptions import ObjectNotFoundException, AllRoomsAreBookedException, RoomNotFoundHTTPException, \
+    RoomNotFoundException, HotelNotFoundException, HotelNotFoundHTTPException, AllRoomsAreBookedHTTPException
 from src.schemas.booking import BookingAdd, BookingAddRequest
 from src.schemas.hotels import Hotel
 from src.schemas.rooms import Room
+from src.services.bookings import BookingService
 
 router = APIRouter(prefix="/bookings", tags=["Бронирования"])
 
@@ -15,14 +17,14 @@ router = APIRouter(prefix="/bookings", tags=["Бронирования"])
 async def get_bookings(
     db: DBDep,
 ):
-    result = await db.bookings.get_all()
-    return {"status": "ok", "data": result}
+    booking = await BookingService(db).get_bookings()
+    return {"status": "ok", "data": booking}
 
 
 @router.get("/me")
 async def get_my_bookings(db: DBDep, user_id: UserIdDep):
-    result = await db.bookings.get_filtered(user_id=user_id)
-    return {"status": "ok", "data": result}
+    booking = await BookingService(db).get_my_bookings(user_id=user_id)
+    return {"status": "ok", "data": booking}
 
 
 @router.post("")
@@ -43,14 +45,11 @@ async def add_booking(
     ),
 ):
     try:
-        room: Room = await db.rooms.get_one(id=booking_data.room_id)
-    except ObjectNotFoundException:
-        raise RoomNotFoundHTTPException
-    hotel: Hotel = await db.hotels.get_one(id=room.hotel_id)
-    _booking_data = BookingAdd(user_id=user_id, price=room.price, **booking_data.model_dump())
-    try:
-        result = await db.bookings.add_booking(_booking_data, hotel_id=hotel.id)
+        result = await BookingService(db).add_booking(user_id=user_id, booking_data=booking_data)
+    except RoomNotFoundException as ex:
+        raise RoomNotFoundHTTPException from ex
+    except HotelNotFoundException as ex:
+        raise HotelNotFoundHTTPException from ex
     except AllRoomsAreBookedException as ex:
-        raise HTTPException(status_code=409, detail=ex.detail)
-    await db.commit()
+        raise AllRoomsAreBookedHTTPException from ex
     return {"status": "ok", "data": result}

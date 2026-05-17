@@ -1,7 +1,8 @@
 from fastapi import APIRouter, HTTPException, Response
 
 from src.api.dependencies import UserIdDep, DBDep
-from src.exceptions import ObjectAlreadyExistsException
+from src.exceptions import ObjectAlreadyExistsException, UserAlreadyExistsHTTPException, WrongEmailException, \
+    WrongEmailHTTPException, WrongPasswordException, WrongPasswordHTTPException
 from src.schemas.users import UserRequestAdd, UserAdd
 from src.services.auth import AuthService
 
@@ -12,14 +13,10 @@ async def register_user(
     db: DBDep,
     data: UserRequestAdd,
 ):
-    hashed_password = AuthService().hash_password(data.password)
-    new_user_data = UserAdd(email=data.email, hashed_password=hashed_password)
     try:
-        await db.users.add(data=new_user_data)
+        await AuthService(db).register_user(data=data)
     except ObjectAlreadyExistsException:
-        raise HTTPException(status_code=409, detail="Пользователь с такой почтой уже существует")
-    await db.commit()
-
+        raise UserAlreadyExistsHTTPException
     return {"status": "OK"}
 
 
@@ -29,12 +26,12 @@ async def login_user(
     data: UserRequestAdd,
     response: Response,
 ):
-    user = await db.users.get_user_with_hashed_password(email=data.email)
-    if not user:
-        raise HTTPException(status_code=401, detail="Пользователь с таким email не зарегистрирован")
-    if not AuthService().verify_password(data.password, user.hashed_password):
-        raise HTTPException(status_code=401, detail="Пароль неверный")
-    access_token = AuthService().create_access_token({"user_id": user.id})
+    try:
+        access_token = await AuthService(db).login_user(data=data)
+    except WrongEmailException as ex:
+        raise WrongEmailHTTPException from ex
+    except WrongPasswordException as ex:
+        raise WrongPasswordHTTPException from ex
     response.set_cookie("access_token", access_token)
     return {"access_token": access_token}
 
