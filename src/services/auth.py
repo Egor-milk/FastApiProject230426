@@ -7,8 +7,10 @@ from src.config import settings
 
 from fastapi import HTTPException
 
+from src.services.base import BaseService
 
-class AuthService:
+
+class AuthService(BaseService):
     pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
     def verify_password(self, plain_password, hashed_password):
