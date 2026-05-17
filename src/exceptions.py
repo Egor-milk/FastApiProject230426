@@ -12,6 +12,11 @@ class NabronirovalException(Exception):
 class ObjectNotFoundException(NabronirovalException):
     detail = "Объект не найден"
 
+class RoomNotFoundException(ObjectNotFoundException):
+    pass
+
+class HotelNotFoundException(ObjectNotFoundException):
+    pass
 
 
 class AllRoomsAreBookedException(NabronirovalException):
@@ -33,10 +38,10 @@ class NabronirovalHTTPException(HTTPException):
         super().__init__(status_code=self.status_code, detail=self.detail)
 
 
-class HotelNotFoundException(NabronirovalHTTPException):
+class HotelNotFoundHTTPException(NabronirovalHTTPException):
     status_code = 404
     detail = "Отель не найден"
 
-class RoomNotFoundException(NabronirovalHTTPException):
+class RoomNotFoundHTTPException(NabronirovalHTTPException):
     status_code = 404
     detail = "Номер не найден"

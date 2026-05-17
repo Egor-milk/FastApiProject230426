@@ -76,7 +76,7 @@ class BaseRepository:
             .returning(self.model)
         )
         # exclude_unset=True позволяет не вставлять не переданные параметры
-        print(edit_hotel_stmt.compile(engine, compile_kwargs={"literal_binds": True}))
+        #print(edit_hotel_stmt.compile(engine, compile_kwargs={"literal_binds": True}))
         hotel = await self.session.execute(edit_hotel_stmt)
         model = hotel.scalars().one()
         return self.mapper.map_to_domain_entity(model)

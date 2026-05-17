@@ -8,7 +8,7 @@ from fastapi_cache.decorator import cache
 from sqlalchemy.exc import MultipleResultsFound
 
 from src.api.dependencies import PaginationDep, DBDep
-from src.exceptions import check_date_to_after_date_from, ObjectNotFoundException, HotelNotFoundException
+from src.exceptions import check_date_to_after_date_from, ObjectNotFoundException, HotelNotFoundHTTPException
 from src.schemas.hotels import HotelPatch, HotelAdd
 from src.services.hotels import HotelService
 
@@ -47,7 +47,7 @@ async def get_hotel(
     except MultipleResultsFound:
         raise HTTPException(status_code=400, detail="multiple result found")
     except ObjectNotFoundException:
-        raise HotelNotFoundException
+        raise HotelNotFoundHTTPException
 
 
 @router.post("")
@@ -82,7 +82,7 @@ async def edit_hotel(
     hotel_id: int,
     hotel_data: HotelAdd,
 ):
-    hotel = HotelService(db).edit_hotel(hotel_id=hotel_id, data=hotel_data)
+    hotel = await HotelService(db).edit_hotel(hotel_id=hotel_id, data=hotel_data)
     return {"status": "OK", "data": hotel}
 
 
@@ -96,7 +96,7 @@ async def partially_edit_hotel(
     hotel_id: int,
     hotel_data: HotelPatch,
 ):
-    hotel = HotelService(db).edit_hotel(exclude_unset=True, hotel_id=hotel_id, data=hotel_data)
+    hotel = await HotelService(db).edit_hotel_partially(exclude_unset=True, hotel_id=hotel_id, data=hotel_data)
     return {"status": "OK", "data": hotel}
 
 
