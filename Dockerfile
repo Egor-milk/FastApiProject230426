@@ -4,9 +4,10 @@ RUN echo ls
 WORKDIR /app
 RUN echo ls
 
-COPY . .
 
+COPY requirements-win.txt requirements-win.txt
 RUN pip install -r requirements-win.txt
 
+COPY . .
 
-CMD ["python", "src/main.py"] 
+CMD ["python", "src/main.py"]
