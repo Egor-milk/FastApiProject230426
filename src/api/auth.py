@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Response
 
 from src.api.dependencies import UserIdDep, DBDep
 from src.exceptions import ObjectAlreadyExistsException, UserAlreadyExistsHTTPException, WrongEmailException, \
-    WrongEmailHTTPException, WrongPasswordException, WrongPasswordHTTPException
+    WrongEmailHTTPException, WrongPasswordException, WrongPasswordHTTPException, UserAlreadyExistsException
 from src.schemas.users import UserRequestAdd, UserAdd
 from src.services.auth import AuthService
 
@@ -15,7 +15,7 @@ async def register_user(
 ):
     try:
         await AuthService(db).register_user(data=data)
-    except ObjectAlreadyExistsException:
+    except UserAlreadyExistsException:
         raise UserAlreadyExistsHTTPException
     return {"status": "OK"}
 

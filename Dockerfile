@@ -10,4 +10,5 @@ RUN pip install -r requirements-win.txt
 
 COPY . .
 
-CMD ["python", "src/main.py"]
+#CMD ["python", "src/main.py"]
+CMD alembic upgrade head; python src/main.py

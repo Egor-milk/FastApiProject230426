@@ -36,4 +36,14 @@ docker run --name booking_back `
     --network=my_network `
     booking_image
 
+docker run --name booking_celery_worker `
+    --network=my_network `
+    booking_image `
+    celery --app=src.tasks.celery_app:celery_instance worker -l INFO
+
+docker run --name booking_celery_beat `
+    --network=my_network `
+    booking_image `
+    celery --app=src.tasks.celery_app:celery_instance beat -l INFO -B
+
 docker build -t booking_image .
